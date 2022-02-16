@@ -10,6 +10,9 @@ networks:
   database:
   web:
   agent:
+  proxy:
+    external: true
+    name: ${DOCKER_PROXY_NETWORK}
 
 services:
   postgres-server:
@@ -60,6 +63,7 @@ services:
     image: zabbix/zabbix-web-nginx-pgsql:${ZABBIX_TAG}
     restart: unless-stopped
     networks:
+      - proxy
       - database
       - web
     secrets:
