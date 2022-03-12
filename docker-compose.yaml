@@ -53,6 +53,7 @@ services:
       ZBX_STARTPINGERS: 5
       ZBX_STARTDISCOVERERS: 5
       ZBX_TIMEOUT: 5
+      ZBX_STARTPOLLERSUNREACHABLE: 10
     ports:
       - 10051:10051
     depends_on:
