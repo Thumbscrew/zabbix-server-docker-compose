@@ -10,7 +10,7 @@ networks:
   web:
   agent:
   proxy:
-    external: false
+    external: ${DOCKER_PROXY_EXT-false}
     name: ${DOCKER_PROXY_NETWORK}
 
 services:
