@@ -7,35 +7,17 @@ secrets:
     file: ./secrets/postgres_password.txt
 
 networks:
-  database:
   web:
   agent:
   proxy:
-    external: true
+    external: ${DOCKER_PROXY_EXT-false}
     name: ${DOCKER_PROXY_NETWORK}
 
 services:
-  postgres-server:
-    image: postgres:${POSTGRES_TAG}
-    restart: unless-stopped
-    volumes:
-      - ${VOLUME_PATH}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
-    networks:
-      - database
-    secrets:
-      - postgres_db
-      - postgres_user
-      - postgres_password
-    environment:
-      POSTGRES_DB_FILE: /run/secrets/postgres_db
-      POSTGRES_USER_FILE: /run/secrets/postgres_user
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-
   zabbix-server:
     image: zabbix/zabbix-server-pgsql:${ZABBIX_TAG}
     restart: unless-stopped
     networks:
-      - database
       - web
       - agent
     secrets:
@@ -43,6 +25,8 @@ services:
       - postgres_user
       - postgres_password
     environment:
+      DB_SERVER_HOST: ${POSTGRES_HOST}
+      DB_SERVER_PORT: ${POSTGRES_PORT-5432}
       POSTGRES_DB_FILE: /run/secrets/postgres_db
       POSTGRES_USER_FILE: /run/secrets/postgres_user
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
@@ -56,8 +40,6 @@ services:
       ZBX_STARTPOLLERSUNREACHABLE: 10
     ports:
       - 10051:10051
-    depends_on:
-      - postgres-server
     volumes:
       - ${VOLUME_PATH}/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:rw
 
@@ -66,13 +48,14 @@ services:
     restart: unless-stopped
     networks:
       - proxy
-      - database
       - web
     secrets:
       - postgres_db
       - postgres_user
       - postgres_password
     environment:  # Postgres database variables
+      DB_SERVER_HOST: ${POSTGRES_HOST}
+      DB_SERVER_PORT: ${POSTGRES_PORT-5432}
       POSTGRES_DB_FILE: /run/secrets/postgres_db
       POSTGRES_USER_FILE: /run/secrets/postgres_user
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
@@ -81,7 +64,6 @@ services:
       PHP_TZ: ${ZABBIX_TZ}
       ZBX_MAXEXECUTIONTIME: 500
     depends_on:
-      - postgres-server
       - zabbix-server
     # ports: # Port where Zabbix UI is available
     #   - 80:8080
